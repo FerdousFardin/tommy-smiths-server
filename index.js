@@ -39,13 +39,19 @@ async function run() {
       const serviceId = req.params.id;
       const query = { service_id: ObjectId(serviceId) };
       const cursor = reviewCollection.find(query);
-      const reviews = await cursor.toArray();
-      req.send(reviews);
-      app.post("/reviews", async (req, res) => {
-        const review = req.body;
-        const result = await reviewCollection.insertOne(review);
-        res.send(result);
-      });
+      const serviceReviews = await cursor.toArray();
+      req.send(serviceReviews);
+    });
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const allReviews = await cursor.toArray();
+      res.send(allReviews);
     });
   } finally {
   }
