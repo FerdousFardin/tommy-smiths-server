@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { query } = require("express");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 //middleware
@@ -19,10 +20,11 @@ async function run() {
     const database = client.db("Tommy's-Photography-DB");
     const serviceCollection = database.collection("services");
     const reviewCollection = database.collection("reviews");
+
     app.get("/services", async (req, res) => {
       const limit = req.query.limit;
       const query = {};
-      const cursor = serviceCollection.find(query);
+      const cursor = serviceCollection.find(query).sort({ date: -1 });
       const services = limit
         ? await cursor.limit(+limit).toArray()
         : await cursor.toArray();
@@ -52,6 +54,21 @@ async function run() {
       const cursor = reviewCollection.find(query).sort({ date: -1 });
       const allReviews = await cursor.toArray();
       res.send(allReviews);
+    });
+    app.get("/reviews/:id", async (req, res) => {
+      const serviceId = req.params.id;
+      const query = { service_id: serviceId };
+      const cursor = reviewCollection.find(query);
+      const serviceReview = await cursor.toArray();
+      res.send(serviceReview);
+    });
+    app.put("/reviews/:id", async (req, res) => {
+      const newReview = req.body;
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const update = { $set: newReview };
+      const result = await reviewCollection.updateOne(filter, update);
+      res.send(result);
     });
     app.delete("/reviews/:id", async (req, res) => {
       const id = req.params.id;
